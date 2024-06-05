@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username          String          @unique
+  email             String          @unique
+  passwordHash      String?
+  fullName          String?
+  profilePictureURL String?
+  role              UserRole        @default(USER)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  News              News[]          @relation("UserNews")
+  Comments          Comment[]       @relation("UserComments")
+  Bookmarks         Bookmark[]      @relation("UserBookmarks")
+  Subscriptions     Subscription[]  @relation("UserSubscriptions")
+  Ratings           Rating[]        @relation("UserRatings")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  AUTHOR
+}
+
+model News {
+  id        String   @id @default(uuid())
+  authorId       String   
+  title          String
+  content        String
+  publishedDate  DateTime?
+  categoryId     Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  Author         User         @relation("UserNews", fields: [authorId], references: [id])
+  Category       Category     @relation(fields: [categoryId], references: [id])
+  Comments       Comment[]    @relation("NewsComments")
+  Tags           TagOnNews[]
+  Bookmarks      Bookmark[]   @relation("NewsBookmarks")
+  Ratings        Rating[]     @relation("NewsRatings")
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  newsId     String   
+  authorId   String   
+  content    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  News       News      @relation("NewsComments", fields: [newsId], references: [id])
+  Author     User      @relation("UserComments", fields: [authorId], references: [id])
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  News        News[]
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  News        TagOnNews[]
+}
+
+model TagOnNews {
+  tagId   String
+  newsId  String
+  Tag     Tag     @relation(fields: [tagId], references: [id])
+  News    News    @relation(fields: [newsId], references: [id])
+
+  @@id([tagId, newsId])
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  newsId     String   
+  userId     String   
+  rating     Int      
+  createdAt  DateTime @default(now())
+  News       News     @relation("NewsRatings", fields: [newsId], references: [id])
+  User       User     @relation("UserRatings", fields: [userId], references: [id])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId     String   
+  newsId     String   
+  createdAt  DateTime @default(now())
+  News       News     @relation("NewsBookmarks", fields: [newsId], references: [id])
+  User       User     @relation("UserBookmarks", fields: [userId], references: [id])
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId            String   
+  subscriptionDate  DateTime
+  active            Boolean
+  createdAt         DateTime @default(now())
+  User              User     @relation("UserSubscriptions", fields: [userId], references: [id])
+}
