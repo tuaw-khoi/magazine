@@ -1,5 +1,12 @@
 import { UserRole } from '@prisma/client';
-import { IsString, IsEmail, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsEnum,
+  IsNotEmpty,
+  MinLength,
+} from 'class-validator';
 
 export class UserDto {
   @IsString()
@@ -23,4 +30,17 @@ export class UserDto {
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
+}
+export class ChangePasswordDto {
+  @IsString()
+  @MinLength(6)
+  currentPassword: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
+}
+export class notication {
+  @IsString()
+  message: string;
 }

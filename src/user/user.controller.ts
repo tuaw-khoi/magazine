@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Patch, Delete, Body } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserDto } from './dtos/user.dto';
+import { ChangePasswordDto, UserDto, notication } from './dtos/user.dto';
 import { User } from '@prisma/client';
 
 @Controller('users')
@@ -26,7 +26,14 @@ export class UserController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<{ message: string }> {
+  remove(@Param('id') id: string): Promise<notication> {
     return this.userService.remove(id);
+  }
+  @Patch('change-password/:id')
+  changePassword(
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<notication> {
+    return this.userService.changePassword(id, changePasswordDto);
   }
 }
