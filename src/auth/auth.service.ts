@@ -83,7 +83,7 @@ export class AuthService {
       refreshToken,
     };
   }
-  async refresh(authorization): Promise<Token> {
+  async refresh(authorization: string): Promise<Token> {
     if (!authorization) {
       throw new HttpException(
         'Refresh token is missing',
@@ -93,9 +93,12 @@ export class AuthService {
 
     let payload = null;
     try {
-      payload = this.jwtService.verify(authorization.refreshToken, {
-        secret: process.env.REFRESH_TOKEN_KEY,
-      });
+      payload = this.jwtService.verify(
+        authorization.split(' ')[1] || authorization.split(' ')[0],
+        {
+          secret: process.env.REFRESH_TOKEN_KEY,
+        },
+      );
     } catch (e) {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
     }
