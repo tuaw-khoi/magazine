@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ChangePasswordDto, UserDto, notication } from './dtos/user.dto';
+import { ChangePasswordDto, UserDto, notification } from './dtos/user.dto';
 import { hash, compare } from 'bcrypt';
 @Injectable()
 export class UserService {
@@ -75,7 +75,7 @@ export class UserService {
     return updatedUser;
   }
 
-  async remove(id: string): Promise<notication> {
+  async remove(id: string): Promise<notification> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -92,7 +92,7 @@ export class UserService {
   async changePassword(
     id: string,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<notication> {
+  ): Promise<notification> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });

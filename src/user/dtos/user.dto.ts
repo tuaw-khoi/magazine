@@ -40,7 +40,7 @@ export class ChangePasswordDto {
   @MinLength(6)
   newPassword: string;
 }
-export class notication {
+export class notification {
   @IsString()
   message: string;
 }
