@@ -13,10 +13,41 @@ import { TagModule } from './tag/tag.module';
 import { RatingModule } from './rating/rating.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { SubscriptionModule } from './subscription/subscription.module';
-
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './guard/auth.guard';
+import { RolesGuard } from './guard/roles.gruad';
 @Module({
-  imports: [PrismaModule, AuthModule, UserModule, NewsModule, CommentModule, CategoryModule, TagModule, RatingModule, BookmarkModule, SubscriptionModule],
+  imports: [
+    JwtModule.register({
+      global: true,
+    }),
+    ConfigModule.forRoot(),
+    PrismaModule,
+    AuthModule,
+    UserModule,
+    NewsModule,
+    CommentModule,
+    CategoryModule,
+    TagModule,
+    RatingModule,
+    BookmarkModule,
+    SubscriptionModule,
+  ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, UserService],
+  providers: [
+    AppService,
+    PrismaService,
+    UserService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}
