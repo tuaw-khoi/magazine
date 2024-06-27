@@ -13,8 +13,10 @@ import {
   UpdateCommentDto,
   CommentDto,
 } from './dtos/comment.dto';
-import { notification } from 'src/user/dtos/user.dto';
+import { UserResDto, notification } from 'src/user/dtos/user.dto';
 import { Roles } from 'src/decorator/roles.decorator';
+import { isPublic } from 'src/decorator/public.decorator';
+import { User } from 'src/decorator/user.decorator';
 
 @Controller('comments')
 export class CommentController {
@@ -24,17 +26,17 @@ export class CommentController {
   create(@Body() createCommentDto: CreateCommentDto): Promise<CommentDto> {
     return this.commentService.create(createCommentDto);
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get()
   findAll(): Promise<CommentDto[]> {
     return this.commentService.findAll();
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get(':id')
   findOne(@Param('id') id: string): Promise<CommentDto> {
     return this.commentService.findOne(id);
   }
-  @Roles('ADMIN', 'AUTHOR')
+  @Roles('ADMIN', 'AUTHOR', 'USER')
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -42,9 +44,12 @@ export class CommentController {
   ): Promise<CommentDto> {
     return this.commentService.update(id, updateCommentDto);
   }
-  @Roles('ADMIN', 'AUTHOR')
+  @Roles('ADMIN', 'AUTHOR', 'USER')
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<notification> {
-    return this.commentService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @User() user: UserResDto,
+  ): Promise<notification> {
+    return this.commentService.remove(id, user);
   }
 }

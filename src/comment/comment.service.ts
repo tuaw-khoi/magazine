@@ -10,7 +10,7 @@ import {
   CommentDto,
 } from './dtos/comment.dto';
 import { Comment } from '@prisma/client';
-import { notification } from 'src/user/dtos/user.dto';
+import { UserResDto, notification } from 'src/user/dtos/user.dto';
 
 @Injectable()
 export class CommentService {
@@ -72,6 +72,10 @@ export class CommentService {
       throw new NotFoundException(`Comment with ID ${id} not found`);
     }
 
+    if (comment.authorId != updateCommentDto.authorId) {
+      throw new NotFoundException(`Author Id not match`);
+    }
+
     const updatedComment = await this.prisma.comment.update({
       where: { id },
       data: updateCommentDto,
@@ -80,7 +84,7 @@ export class CommentService {
     return this.toCommentDto(updatedComment);
   }
 
-  async remove(id: string): Promise<notification> {
+  async remove(id: string, user: UserResDto): Promise<notification> {
     const comment = await this.prisma.comment.findUnique({
       where: { id },
     });
@@ -89,11 +93,14 @@ export class CommentService {
       throw new NotFoundException(`Comment with ID ${id} not found`);
     }
 
-    await this.prisma.comment.delete({
-      where: { id },
-    });
-
-    return { message: 'remove comment success' };
+    if (user.role === 'ADMIN' || user.id === comment.authorId) {
+      await this.prisma.comment.delete({
+        where: { id },
+      });
+      return { message: 'remove comment success' };
+    } else {
+      return { message: 'remove comment error' };
+    }
   }
 
   private toCommentDto(comment: Comment): CommentDto {

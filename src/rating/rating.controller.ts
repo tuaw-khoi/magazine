@@ -8,9 +8,15 @@ import {
   Delete,
 } from '@nestjs/common';
 import { RatingService } from './rating.service';
-import { CreateRatingDto, UpdateRatingDto, RatingDto } from './dtos/rating.dto';
+import {
+  CreateRatingDto,
+  UpdateRatingDto,
+  RatingDto,
+  DeleteRatingDto,
+} from './dtos/rating.dto';
 import { notification } from 'src/user/dtos/user.dto';
 import { Roles } from 'src/decorator/roles.decorator';
+import { isPublic } from 'src/decorator/public.decorator';
 
 @Controller('ratings')
 export class RatingController {
@@ -20,7 +26,7 @@ export class RatingController {
   create(@Body() createRatingDto: CreateRatingDto): Promise<RatingDto> {
     return this.ratingService.create(createRatingDto);
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get()
   findAll(): Promise<RatingDto[]> {
     return this.ratingService.findAll();
@@ -30,7 +36,7 @@ export class RatingController {
   findOne(@Param('id') id: string): Promise<RatingDto> {
     return this.ratingService.findOne(id);
   }
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'AUTHOR', 'USER')
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -38,9 +44,12 @@ export class RatingController {
   ): Promise<RatingDto> {
     return this.ratingService.update(id, updateRatingDto);
   }
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'AUTHOR', 'USER')
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<notification> {
-    return this.ratingService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @Body() DeleteRating: DeleteRatingDto,
+  ): Promise<notification> {
+    return this.ratingService.remove(id, DeleteRating);
   }
 }

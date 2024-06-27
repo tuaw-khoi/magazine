@@ -4,7 +4,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateRatingDto, UpdateRatingDto, RatingDto } from './dtos/rating.dto';
+import {
+  CreateRatingDto,
+  UpdateRatingDto,
+  RatingDto,
+  DeleteRatingDto,
+} from './dtos/rating.dto';
 import { Rating } from '@prisma/client';
 import { notification } from 'src/user/dtos/user.dto';
 
@@ -68,6 +73,10 @@ export class RatingService {
       throw new NotFoundException(`Rating with ID ${id} not found`);
     }
 
+    if (rating.userId != updateRatingDto.userId) {
+      throw new NotFoundException(`User id not match`);
+    }
+
     const updatedRating = await this.prisma.rating.update({
       where: { id },
       data: updateRatingDto,
@@ -76,13 +85,20 @@ export class RatingService {
     return this.toRatingDto(updatedRating);
   }
 
-  async remove(id: string): Promise<notification> {
+  async remove(
+    id: string,
+    DeleteRating: DeleteRatingDto,
+  ): Promise<notification> {
     const rating = await this.prisma.rating.findUnique({
       where: { id },
     });
 
     if (!rating) {
       throw new NotFoundException(`Rating with ID ${id} not found`);
+    }
+
+    if (rating.userId != DeleteRating.userId) {
+      throw new NotFoundException(`user Id not match`);
     }
 
     await this.prisma.rating.delete({

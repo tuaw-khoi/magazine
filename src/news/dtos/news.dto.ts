@@ -1,4 +1,9 @@
-import { IsString, IsOptional, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateNewsDto {
   @IsString()
@@ -18,6 +23,10 @@ export class CreateNewsDto {
   categoryId: string;
 }
 export class UpdateNewsDto {
+  @IsNotEmpty()
+  @IsString()
+  authorId: string;
+  
   @IsOptional()
   @IsString()
   title?: string;

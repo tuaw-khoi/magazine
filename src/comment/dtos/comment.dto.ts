@@ -12,6 +12,9 @@ export class CreateCommentDto {
 }
 
 export class UpdateCommentDto {
+  @IsUUID()
+  authorId: string;
+
   @IsOptional()
   @IsString()
   content?: string;

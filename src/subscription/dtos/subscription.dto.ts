@@ -1,4 +1,4 @@
-import { IsUUID, IsDateString, IsBoolean, IsOptional } from 'class-validator';
+import { IsUUID, IsDateString, IsBoolean, IsOptional, IsNotEmpty } from 'class-validator';
 
 export class CreateSubscriptionDto {
   @IsUUID()
@@ -12,6 +12,10 @@ export class CreateSubscriptionDto {
 }
 
 export class UpdateSubscriptionDto {
+  @IsNotEmpty()
+  @IsUUID()
+  userId: string;
+
   @IsOptional()
   @IsDateString()
   subscriptionDate?: Date;

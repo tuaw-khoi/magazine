@@ -43,6 +43,10 @@ export class NewsService {
       throw new NotFoundException(`News with ID ${id} not found`);
     }
 
+    if (news.authorId != updateNewsDto.authorId) {
+      throw new NotFoundException(`Author Id not match`);
+    }
+
     const updatedNews = await this.prisma.news.update({
       where: { id },
       data: updateNewsDto,

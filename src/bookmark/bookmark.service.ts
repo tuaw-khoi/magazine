@@ -10,7 +10,7 @@ import {
   BookmarkDto,
 } from './dtos/bookmark.dto';
 import { Bookmark } from '@prisma/client';
-import { notification } from 'src/user/dtos/user.dto';
+import { UserResDto, notification } from 'src/user/dtos/user.dto';
 
 @Injectable()
 export class BookmarkService {
@@ -60,10 +60,7 @@ export class BookmarkService {
     return this.toBookmarkDto(bookmark);
   }
 
-  async update(
-    id: string,
-    updateBookmarkDto: UpdateBookmarkDto,
-  ): Promise<BookmarkDto> {
+  async remove(id: string, user: UserResDto): Promise<notification> {
     const bookmark = await this.prisma.bookmark.findUnique({
       where: { id },
     });
@@ -72,21 +69,8 @@ export class BookmarkService {
       throw new NotFoundException(`Bookmark with ID ${id} not found`);
     }
 
-    const updatedBookmark = await this.prisma.bookmark.update({
-      where: { id },
-      data: updateBookmarkDto,
-    });
-
-    return this.toBookmarkDto(updatedBookmark);
-  }
-
-  async remove(id: string): Promise<notification> {
-    const bookmark = await this.prisma.bookmark.findUnique({
-      where: { id },
-    });
-
-    if (!bookmark) {
-      throw new NotFoundException(`Bookmark with ID ${id} not found`);
+    if (bookmark.userId != user.id) {
+      throw new NotFoundException(`User Id not match`);
     }
 
     await this.prisma.bookmark.delete({

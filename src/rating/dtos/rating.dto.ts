@@ -1,4 +1,10 @@
-import { IsInt, IsUUID, IsOptional, IsDateString } from 'class-validator';
+import {
+  IsInt,
+  IsUUID,
+  IsOptional,
+  IsDateString,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateRatingDto {
   @IsUUID()
@@ -12,9 +18,20 @@ export class CreateRatingDto {
 }
 
 export class UpdateRatingDto {
+  @IsNotEmpty()
+  @IsUUID()
+  userId: string;
+
   @IsOptional()
   @IsInt()
   rating?: number;
+}
+
+export class DeleteRatingDto {
+  @IsNotEmpty()
+  @IsUUID()
+  userId: string;
+
 }
 
 export class RatingDto {

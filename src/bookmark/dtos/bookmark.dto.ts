@@ -11,10 +11,6 @@ export class CreateBookmarkDto {
 export class UpdateBookmarkDto {
   @IsOptional()
   @IsUUID()
-  userId?: string;
-
-  @IsOptional()
-  @IsUUID()
   newsId?: string;
 }
 

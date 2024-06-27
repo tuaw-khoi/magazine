@@ -13,6 +13,7 @@ import { UpdateCategoryDto } from './dtos/category.dto';
 import { CategoryDto } from './dtos/category.dto';
 import { notification } from 'src/user/dtos/user.dto';
 import { Roles } from 'src/decorator/roles.decorator';
+import { isPublic } from 'src/decorator/public.decorator';
 
 @Controller('categories')
 export class CategoryController {
@@ -22,12 +23,12 @@ export class CategoryController {
   create(@Body() createCategoryDto: CreateCategoryDto): Promise<CategoryDto> {
     return this.categoryService.create(createCategoryDto);
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get()
   findAll(): Promise<CategoryDto[]> {
     return this.categoryService.findAll();
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get(':id')
   findOne(@Param('id') id: string): Promise<CategoryDto> {
     return this.categoryService.findOne(id);

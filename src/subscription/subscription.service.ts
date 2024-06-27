@@ -66,6 +66,10 @@ export class SubscriptionService {
       throw new NotFoundException(`Subscription with ID ${id} not found`);
     }
 
+    if (subscription.userId != updateSubscriptionDto.userId) {
+      throw new NotFoundException(`User Id not match`);
+    }
+
     const updatedSubscription = await this.prisma.subscription.update({
       where: { id },
       data: updateSubscriptionDto,

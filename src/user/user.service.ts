@@ -4,26 +4,66 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ChangePasswordDto, UserDto, notification } from './dtos/user.dto';
+import {
+  ChangePasswordDto,
+  FilterUserDto,
+  PaginatedResult,
+  UserDto,
+  notification,
+} from './dtos/user.dto';
 import { hash, compare } from 'bcrypt';
+import { Prisma, User } from '@prisma/client';
+
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<UserDto[]> {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        fullName: true,
-        profilePictureURL: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-    return users;
+  async findAll(query: FilterUserDto): Promise<PaginatedResult<User>> {
+    const itemsPerPage = Number(query.items_per_page) || 10;
+    const page = Number(query.page) || 1;
+    const skip = (page - 1) * itemsPerPage;
+    const keyword = query.search || '';
+
+    const filter: Prisma.UserWhereInput = {
+      OR: [
+        { username: { contains: keyword } },
+        { email: { contains: keyword } },
+        { fullName: { contains: keyword } },
+      ],
+    };
+
+    const [res, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where: filter,
+        skip,
+        take: itemsPerPage,
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          fullName: true,
+          profilePictureURL: true,
+          passwordHash: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.user.count({ where: filter }),
+    ]);
+
+    const lastPage = Math.ceil(total / itemsPerPage);
+    const nextPage = page + 1 > lastPage ? null : page + 1;
+    const prevPage = page - 1 < 1 ? null : page - 1;
+
+    return {
+      data: res,
+      total,
+      currentPage: page,
+      nextPage,
+      prevPage,
+      lastPage,
+    };
   }
 
   async findOne(id: string): Promise<UserDto> {

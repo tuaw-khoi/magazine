@@ -13,6 +13,7 @@ import { UpdateNewsDto } from './dtos/news.dto';
 import { NewsDto } from './dtos/news.dto';
 import { notification } from 'src/user/dtos/user.dto';
 import { Roles } from 'src/decorator/roles.decorator';
+import { isPublic } from 'src/decorator/public.decorator';
 
 @Controller('news')
 export class NewsController {
@@ -22,12 +23,12 @@ export class NewsController {
   create(@Body() createNewsDto: CreateNewsDto): Promise<NewsDto> {
     return this.newsService.create(createNewsDto);
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get()
   findAll(): Promise<NewsDto[]> {
     return this.newsService.findAll();
   }
-  @Roles('ADMIN', 'AUTHOR', 'USER')
+  @isPublic()
   @Get(':id')
   findOne(@Param('id') id: string): Promise<NewsDto> {
     return this.newsService.findOne(id);

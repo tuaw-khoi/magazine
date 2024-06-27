@@ -5,10 +5,16 @@ import {
   Patch,
   Delete,
   Body,
-  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ChangePasswordDto, UserDto, notification } from './dtos/user.dto';
+import {
+  ChangePasswordDto,
+  FilterUserDto,
+  PaginatedResult,
+  UserDto,
+  notification,
+} from './dtos/user.dto';
 import { User } from '@prisma/client';
 import { AuthGuard } from 'src/guard/auth.guard';
 import { Roles } from 'src/decorator/roles.decorator';
@@ -18,8 +24,8 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   @Roles('ADMIN')
   @Get()
-  findAll(): Promise<UserDto[]> {
-    return this.userService.findAll();
+  async findAll(@Query() query: FilterUserDto): Promise<PaginatedResult<User>> {
+    return this.userService.findAll(query);
   }
   @Roles('ADMIN')
   @Get(':id')
