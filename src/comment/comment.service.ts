@@ -8,9 +8,10 @@ import {
   CreateCommentDto,
   UpdateCommentDto,
   CommentDto,
+  FilterCommentDto,
 } from './dtos/comment.dto';
 import { Comment } from '@prisma/client';
-import { UserResDto, notification } from 'src/user/dtos/user.dto';
+import { PaginatedResult, UserResDto, notification } from 'src/user/dtos/user.dto';
 
 @Injectable()
 export class CommentService {
@@ -43,9 +44,43 @@ export class CommentService {
     return this.toCommentDto(comment);
   }
 
-  async findAll(): Promise<CommentDto[]> {
-    const comments = await this.prisma.comment.findMany();
-    return comments.map((comment) => this.toCommentDto(comment));
+  async findAll(query: FilterCommentDto): Promise<PaginatedResult<CommentDto>> {
+    const itemsPerPage = Number(query.items_per_page) || 10;
+    const page = Number(query.page) || 1;
+    const skip = (page - 1) * itemsPerPage;
+
+    const filter: any = {};
+    if (query.newsId) {
+      filter.newsId = query.newsId;
+    }
+    if (query.authorId) {
+      filter.authorId = query.authorId;
+    }
+    if (query.search) {
+      filter.OR = [{ content: { contains: query.search } }];
+    }
+
+    const [res, total] = await Promise.all([
+      this.prisma.comment.findMany({
+        where: filter,
+        skip,
+        take: itemsPerPage,
+      }),
+      this.prisma.comment.count({ where: filter }),
+    ]);
+
+    const lastPage = Math.ceil(total / itemsPerPage);
+    const nextPage = page + 1 > lastPage ? null : page + 1;
+    const prevPage = page - 1 < 1 ? null : page - 1;
+
+    return {
+      data: res.map((comment) => this.toCommentDto(comment)),
+      total,
+      currentPage: page,
+      nextPage,
+      prevPage,
+      lastPage,
+    };
   }
 
   async findOne(id: string): Promise<CommentDto> {

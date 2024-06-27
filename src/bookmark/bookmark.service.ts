@@ -8,10 +8,18 @@ import {
   CreateBookmarkDto,
   UpdateBookmarkDto,
   BookmarkDto,
+  FilterBookmarkDto,
 } from './dtos/bookmark.dto';
 import { Bookmark } from '@prisma/client';
 import { UserResDto, notification } from 'src/user/dtos/user.dto';
-
+interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  currentPage: number;
+  nextPage: number | null;
+  prevPage: number | null;
+  lastPage: number;
+}
 @Injectable()
 export class BookmarkService {
   constructor(private prisma: PrismaService) {}
@@ -43,9 +51,48 @@ export class BookmarkService {
     return this.toBookmarkDto(bookmark);
   }
 
-  async findAll(): Promise<BookmarkDto[]> {
-    const bookmarks = await this.prisma.bookmark.findMany();
-    return bookmarks.map((bookmark) => this.toBookmarkDto(bookmark));
+  async findAll(
+    query: FilterBookmarkDto,
+  ): Promise<PaginatedResult<BookmarkDto>> {
+    const itemsPerPage = Number(query.items_per_page) || 10;
+    const page = Number(query.page) || 1;
+    const skip = (page - 1) * itemsPerPage;
+
+    const filter: any = {};
+    if (query.userId) {
+      filter.userId = query.userId;
+    }
+    if (query.newsId) {
+      filter.newsId = query.newsId;
+    }
+    if (query.search) {
+      filter.OR = [
+        { userId: { contains: query.search } },
+        { newsId: { contains: query.search } },
+      ];
+    }
+
+    const [res, total] = await Promise.all([
+      this.prisma.bookmark.findMany({
+        where: filter,
+        skip,
+        take: itemsPerPage,
+      }),
+      this.prisma.bookmark.count({ where: filter }),
+    ]);
+
+    const lastPage = Math.ceil(total / itemsPerPage);
+    const nextPage = page + 1 > lastPage ? null : page + 1;
+    const prevPage = page - 1 < 1 ? null : page - 1;
+
+    return {
+      data: res.map((bookmark) => this.toBookmarkDto(bookmark)),
+      total,
+      currentPage: page,
+      nextPage,
+      prevPage,
+      lastPage,
+    };
   }
 
   async findOne(id: string): Promise<BookmarkDto> {

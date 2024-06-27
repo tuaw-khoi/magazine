@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateNewsDto } from './dtos/news.dto';
+import { CreateNewsDto, FilterNewsDto } from './dtos/news.dto';
 import { UpdateNewsDto } from './dtos/news.dto';
 import { NewsDto } from './dtos/news.dto';
 import { News } from '@prisma/client';
-import { notification } from 'src/user/dtos/user.dto';
+import { PaginatedResult, notification } from 'src/user/dtos/user.dto';
 
 @Injectable()
 export class NewsService {
@@ -17,9 +17,46 @@ export class NewsService {
     return this.toNewsDto(news);
   }
 
-  async findAll(): Promise<NewsDto[]> {
-    const newsList = await this.prisma.news.findMany();
-    return newsList.map((news) => this.toNewsDto(news));
+  async findAll(query: FilterNewsDto): Promise<PaginatedResult<NewsDto>> {
+    const itemsPerPage = Number(query.items_per_page) || 10;
+    const page = Number(query.page) || 1;
+    const skip = (page - 1) * itemsPerPage;
+
+    const filter: any = {};
+    if (query.authorId) {
+      filter.authorId = query.authorId;
+    }
+    if (query.categoryId) {
+      filter.categoryId = query.categoryId;
+    }
+    if (query.search) {
+      filter.OR = [
+        { title: { contains: query.search } },
+        { content: { contains: query.search } },
+      ];
+    }
+
+    const [res, total] = await Promise.all([
+      this.prisma.news.findMany({
+        where: filter,
+        skip,
+        take: itemsPerPage,
+      }),
+      this.prisma.news.count({ where: filter }),
+    ]);
+
+    const lastPage = Math.ceil(total / itemsPerPage);
+    const nextPage = page + 1 > lastPage ? null : page + 1;
+    const prevPage = page - 1 < 1 ? null : page - 1;
+
+    return {
+      data: res.map((news) => this.toNewsDto(news)),
+      total,
+      currentPage: page,
+      nextPage,
+      prevPage,
+      lastPage,
+    };
   }
 
   async findOne(id: string): Promise<NewsDto> {
