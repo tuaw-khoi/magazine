@@ -18,6 +18,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guard/auth.guard';
 import { RolesGuard } from './guard/roles.gruad';
+import { NewsrecommendController } from './newsrecommend/newsrecommend.controller';
+import { NewsrecommendService } from './newsrecommend/newsrecommend.service';
+import { NewsrecommendModule } from './newsrecommend/newsrecommend.module';
+
 @Module({
   imports: [
     JwtModule.register({
@@ -34,8 +38,9 @@ import { RolesGuard } from './guard/roles.gruad';
     RatingModule,
     BookmarkModule,
     SubscriptionModule,
+    NewsrecommendModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, NewsrecommendController],
   providers: [
     AppService,
     PrismaService,
@@ -48,6 +53,7 @@ import { RolesGuard } from './guard/roles.gruad';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    NewsrecommendService,
   ],
 })
 export class AppModule {}

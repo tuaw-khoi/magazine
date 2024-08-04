@@ -25,7 +25,7 @@ import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'USER')
   @Get()
   @ApiResponse({ status: 200, description: 'Users successfully retrieved' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
